@@ -55,5 +55,25 @@ io.on('connection', (socket) => {
   console.log(`Client streaming channel synchronized: ${socket.id}`);
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+const server = httpServer.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  server.close(async () => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+  
+  // Force shutdown after 30 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown due to timeout');
+    process.exit(1);
+  }, 30000);
+});

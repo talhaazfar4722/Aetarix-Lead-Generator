@@ -1,0 +1,30 @@
+# fly.toml app configuration file
+app = "maps-lead-generator-backend"
+primary_region = "iad"
+
+[build]
+  builder = "heroku"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 5000
+  
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 900
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "5000"
+
+[processes]
+  web = "node server.js"
