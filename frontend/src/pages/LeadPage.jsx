@@ -4,8 +4,7 @@ import axios from 'axios';
 import logo from '../assets/aetarixcopy.svg'; 
 import Navbar from '../components/Navbar';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const socket = io(API_URL);
+const socket = io('http://localhost:5000');
 
 export default function LeadPage() {
   const [keyword, setKeyword] = useState('');
@@ -14,20 +13,15 @@ export default function LeadPage() {
   const [specificArea, setSpecificArea] = useState('');
   const [leads, setLeads] = useState([]);
   const [isScraping, setIsScraping] = useState(false);
-  const [error, setError] = useState('');
   const [currentSearch, setCurrentSearch] = useState({ keyword: '', country: '', city: '', area: '' });
 
   useEffect(() => {
     // Load persisted leads from backend on first render
-    axios.get(`${API_URL}/api/leads`)
+    axios.get('http://localhost:5000/api/leads')
       .then(res => {
         if (Array.isArray(res.data)) setLeads(res.data.reverse());
       })
-      .catch((error) => {
-        console.error('Failed to fetch leads:', error.message);
-        setError('Failed to load leads. Backend may be offline.');
-      });
-
+      .catch(() => {});
     // Listen for realtime data streams from the backend scraper
     socket.on('live-lead', (newLead) => {
       setLeads((prevLeads) => {
@@ -46,44 +40,23 @@ export default function LeadPage() {
     // Listen for completion switch from Node backend to release button locks
     socket.on('scraping-finished', () => {
       setIsScraping(false);
-      setError('');
-    });
-
-    // Handle socket connection errors
-    socket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err.message);
-      setError('Connection to server failed. Please refresh the page.');
-      setIsScraping(false);
-    });
-
-    socket.on('disconnect', () => {
-      console.warn('Socket disconnected from server');
     });
 
     return () => {
       socket.off('live-lead');
       socket.off('scraping-finished');
-      socket.off('connect_error');
-      socket.off('disconnect');
     };
   }, []);
 
   const handleStartScraping = async (e) => {
     e.preventDefault();
-    setError('');
-    
-    if (!keyword || !country || !city) {
-      setError('Please fill out Keyword, Country, and City fields');
-      return;
-    }
+    if (!keyword || !country || !city) return alert('Please fill out Keyword, Country, and City fields');
 
     try {
       setIsScraping(true);
       setCurrentSearch({ keyword, country, city, area: specificArea });
-      await axios.post(`${API_URL}/api/scrape`, { keyword, country, city, specificArea });
+      await axios.post('http://localhost:5000/api/scrape', { keyword, country, city, specificArea });
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message || 'Failed to start scraping. Please try again.';
-      setError(`Error: ${errorMsg}`);
       console.error('API Error:', error);
       setIsScraping(false);
     }
@@ -92,13 +65,6 @@ export default function LeadPage() {
   return (
     <div className=" min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Navbar />
-
-      {/* Error Message Banner */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 container mx-auto mt-4 rounded">
-          <p className="font-semibold">{error}</p>
-        </div>
-      )}
 
       {/* Control Panel Form Layout */}
       <form onSubmit={handleStartScraping} className="container mx-auto pt-20 flex flex-col lg:flex-row gap-4 mb-8 items-center  p-6 rounded-xl shadow-sm border border-gray-100">

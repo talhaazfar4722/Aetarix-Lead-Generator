@@ -11,39 +11,15 @@ import { Lead } from './models/Lead.js';
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json());
-
-// Simple rate limiter for scraping endpoint (max 5 requests per minute per IP)
-const scrapeRateLimit = new Map();
-const SCRAPE_LIMIT = 5;
-const SCRAPE_WINDOW = 60 * 1000; // 1 minute
-
-const checkRateLimit = (req, res, next) => {
-  const ip = req.ip || req.connection.remoteAddress;
-  const now = Date.now();
-  
-  if (!scrapeRateLimit.has(ip)) {
-    scrapeRateLimit.set(ip, []);
-  }
-  
-  const timestamps = scrapeRateLimit.get(ip).filter(t => now - t < SCRAPE_WINDOW);
-  
-  if (timestamps.length >= SCRAPE_LIMIT) {
-    return res.status(429).json({ error: 'Too many scrape requests. Please wait a minute before trying again.' });
-  }
-  
-  timestamps.push(now);
-  scrapeRateLimit.set(ip, timestamps);
-  next();
-};
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: process.env.FRONTEND_URL }
+  cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173' }
 });
 
-app.post('/api/scrape', checkRateLimit, (req, res) => {
+app.post('/api/scrape', (req, res) => {
   const { keyword, country, city, specificArea } = req.body;
   
   if (!keyword || !country || !city) {

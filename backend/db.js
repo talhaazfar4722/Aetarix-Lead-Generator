@@ -5,17 +5,22 @@ dotenv.config();
 
 // Build MongoDB connection URI from environment variables
 const getMongoDBUri = () => {
-  // Prefer full MONGODB_URI from env
+  // Option 1: Full MONGODB_URI provided
   if (process.env.MONGODB_URI) {
     return process.env.MONGODB_URI;
   }
   
-  // Fallback: build from individual credentials
-  if (process.env.MONGODB_PASSWORD) {
-    return `mongodb+srv://talhaazfar:${process.env.MONGODB_PASSWORD}@cluster0.sl1gjec.mongodb.net/?appName=Cluster0`;
+  // Option 2: Build from individual components
+  const user = process.env.MONGODB_USER || 'talhaazfar';
+  const password = process.env.MONGODB_PASSWORD;
+  const cluster = process.env.MONGODB_CLUSTER || 'cluster0.sl1gjec.mongodb.net';
+  const appName = process.env.MONGODB_APPNAME || 'Cluster0';
+  
+  if (!password) {
+    return null;
   }
   
-  return null;
+  return `mongodb+srv://${user}:${password}@${cluster}/?appName=${appName}`;
 };
 
 const uri = getMongoDBUri();
@@ -25,7 +30,7 @@ if (!uri) {
 }
 
 mongoose.connect(uri, { 
-  dbName: process.env.MONGODB_DB || undefined,
+  dbName: process.env.MONGODB_DB || 'maps_leads',
   retryWrites: true,
   w: 'majority'
 })
