@@ -1,12 +1,23 @@
 # 🚀 DEPLOYMENT GUIDE - START HERE
 
-Welcome! This guide covers everything you need to deploy to Vercel.
+Welcome! This guide covers everything you need to deploy to Vercel (FREE).
 
 ---
 
 ## 📖 READ IN THIS ORDER
 
-### 1️⃣ **REPOSITORY_STRUCTURE.md** ← START HERE
+### 0️⃣ **FREE_HOSTING_OPTIONS.md** ← NEW!
+Railway costs $5/month. Here are FREE alternatives.
+
+**Your Best Option**: Fly.io (completely free, perfect for Node.js)
+
+This file explains:
+- Railway is NOT free ($5/month)
+- Fly.io IS free (recommended ✅)
+- Render IS free but apps sleep (not ideal)
+- Comparison table & setup instructions
+
+### 1️⃣ **REPOSITORY_STRUCTURE.md**
 Answers your question: "Same or separate repositories?"
 
 **Your Answer**: Same repository (monorepo) ✅
@@ -23,7 +34,7 @@ This file explains:
 This file has:
 - Step-by-step deployment (copy-paste)
 - MongoDB Atlas setup
-- Railway deployment
+- ~~Railway deployment~~ → USE FLY.IO INSTEAD
 - Vercel deployment
 - Common issues & fixes
 
@@ -53,21 +64,21 @@ General deployment information (older, reference only)
 
 ```
 One GitHub Repo: maps-lead-generator/
-├── /backend → Deploy to Railway
-├── /frontend → Deploy to Vercel
+├── /backend → Deploy to Fly.io (FREE)
+├── /frontend → Deploy to Vercel (FREE)
 └── Both in same git repository
 ```
 
-**Why?** Simpler, cleaner, easier to manage.
+**Why?** Simpler, cleaner, easier to manage, and completely FREE.
 
 ---
 
 ## 🎯 30-Minute Deployment Plan
 
-1. **5 min**: Read REPOSITORY_STRUCTURE.md
+1. **5 min**: Read FREE_HOSTING_OPTIONS.md (Railway costs money!)
 2. **5 min**: Setup MongoDB Atlas
-3. **10 min**: Deploy backend to Railway
-4. **5 min**: Deploy frontend to Vercel
+3. **10 min**: Deploy backend to Fly.io (FREE)
+4. **5 min**: Deploy frontend to Vercel (FREE)
 5. **5 min**: Connect them & test
 
 ---
@@ -75,11 +86,11 @@ One GitHub Repo: maps-lead-generator/
 ## 📋 What You'll Get After Deployment
 
 ```
-Frontend: https://xxx.vercel.app
-Backend: https://xxx.railway.app
-Database: MongoDB Atlas (cloud)
+Frontend: https://xxx.vercel.app (FREE)
+Backend: https://xxx.fly.dev (FREE)
+Database: MongoDB Atlas (FREE)
 
-Cost: FREE (while testing)
+Total Cost: $0 FOREVER
 ```
 
 ---
@@ -102,32 +113,35 @@ Cost: FREE (while testing)
    - Use dashboard environment variables instead
 
 2. **DEPLOY IN THIS ORDER**
-   1. Backend first (Railway) → Get URL
+   1. Backend first (Fly.io) → Get URL
    2. Frontend second (Vercel) → Update backend with frontend URL
    3. Update backend with frontend URL
 
 3. **ONE `git push` DEPLOYS BOTH**
    - Push to main branch
    - Vercel automatically builds frontend
-   - Railway automatically builds backend
+   - Fly.io automatically builds backend (if set up)
 
-4. **Free Forever**
-   - Vercel: Free tier (plenty for starting)
-   - Railway: $5/month (free credits first)
+4. **Completely FREE**
+   - Vercel: Free tier
+   - Fly.io: Free tier (no limits!)
    - MongoDB: Free tier (512MB)
 
 ---
 
 ## 📞 If You Get Stuck
 
+### Railway costs money?
+→ Read `FREE_HOSTING_OPTIONS.md` - Use Fly.io instead!
+
 ### Not sure about repository structure?
 → Read `REPOSITORY_STRUCTURE.md`
 
 ### Want quick deployment steps?
-→ Follow `DEPLOYMENT_QUICK_START.md`
+→ Follow `DEPLOYMENT_QUICK_START.md` (but use Fly.io)
 
 ### Need detailed explanation?
-→ See `VERCEL_DEPLOYMENT.md`
+→ See `VERCEL_DEPLOYMENT.md` (but use Fly.io)
 
 ### Connection/CORS errors?
 → Check "Troubleshooting" in Quick Start
@@ -137,8 +151,8 @@ Cost: FREE (while testing)
 ## 🎓 What You'll Learn
 
 After following these guides, you'll understand:
-- ✅ How to deploy React to Vercel
-- ✅ How to deploy Node.js to Railway
+- ✅ How to deploy React to Vercel (FREE)
+- ✅ How to deploy Node.js to Fly.io (FREE)
 - ✅ How to use environment variables
 - ✅ How to connect frontend & backend
 - ✅ How to monitor logs & debug
@@ -160,8 +174,10 @@ git push origin main
 
 ## 🎯 Next Steps
 
-1. Open `REPOSITORY_STRUCTURE.md`
-2. Follow the step-by-step guide
-3. Deploy!
+1. **FIRST**: Open `FREE_HOSTING_OPTIONS.md`
+2. **THEN**: Open `REPOSITORY_STRUCTURE.md`
+3. **FOLLOW**: `DEPLOYMENT_QUICK_START.md` (using Fly.io)
+4. **Deploy!**
 
 **Good luck! You've got this.** 🚀
+
