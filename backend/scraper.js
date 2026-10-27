@@ -1,7 +1,6 @@
 // backend/scraper.js
 import { chromium } from 'playwright';
 import axios from 'axios';
-import { Lead } from './models/Lead.js';
 
 // Helper function to crawl the website for emails
 async function extractEmail(url) {
@@ -68,6 +67,12 @@ export async function startMapsScraping(keyword, location, io) {
   const allLinks = await page.$$eval('a[href*="/maps/place/"]', links => links.map(a => a.href));
   const uniqueBusinessLinks = [...new Set(allLinks)].slice(0, maxLeads);
 
+  // Split "area, city, country" back into fields so each lead carries its search context
+  const parts = location.split(',').map(p => p.trim());
+  const searchArea = parts.length === 3
+    ? { specificArea: parts[0], city: parts[1], country: parts[2] }
+    : { specificArea: '', city: parts[0] || '', country: parts[1] || '' };
+
   console.log(`[Scraper] Found ${uniqueBusinessLinks.length} unique items. Processing stream sequentially...`);
 
   for (let i = 0; i < uniqueBusinessLinks.length; i++) {
@@ -109,7 +114,9 @@ export async function startMapsScraping(keyword, location, io) {
         name: businessName,
         phone: phone,
         website: website || 'N/A',
-        email: 'Looking up...'
+        email: 'Looking up...',
+        keyword,
+        ...searchArea
       };
 
       io.emit('live-lead', leadData);
@@ -120,40 +127,6 @@ export async function startMapsScraping(keyword, location, io) {
       } else {
         leadData.email = website ? 'Local Loopback' : 'No Website';
         io.emit('live-lead', leadData);
-      }
-
-      // Persist lead to MongoDB (if available)
-      try {
-        const parts = location.split(',').map(p => p.trim());
-        let specificArea = '';
-        let city = '';
-        let country = '';
-        if (parts.length === 3) {
-          specificArea = parts[0];
-          city = parts[1];
-          country = parts[2];
-        } else if (parts.length === 2) {
-          city = parts[0];
-          country = parts[1];
-        } else {
-          country = parts[0] || '';
-        }
-
-        const leadToSave = {
-          ...leadData,
-          keyword,
-          specificArea,
-          city,
-          country
-        };
-
-        await Lead.create(leadToSave).catch(e => {
-          // Ignore duplicate key errors (unique index on name+phone)
-          if (e.code === 11000) return;
-          console.error('Error saving lead:', e.message);
-        });
-      } catch (saveErr) {
-        console.error('Could not persist lead:', saveErr.message);
       }
 
       await page.waitForTimeout(1000 + Math.random() * 1000);

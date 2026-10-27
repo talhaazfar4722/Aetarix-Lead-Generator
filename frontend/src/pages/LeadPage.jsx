@@ -16,12 +16,6 @@ export default function LeadPage() {
   const [currentSearch, setCurrentSearch] = useState({ keyword: '', country: '', city: '', area: '' });
 
   useEffect(() => {
-    // Load persisted leads from backend on first render
-    axios.get('http://localhost:5000/api/leads')
-      .then(res => {
-        if (Array.isArray(res.data)) setLeads(res.data.reverse());
-      })
-      .catch(() => {});
     // Listen for realtime data streams from the backend scraper
     socket.on('live-lead', (newLead) => {
       setLeads((prevLeads) => {
@@ -60,6 +54,27 @@ export default function LeadPage() {
       console.error('API Error:', error);
       setIsScraping(false);
     }
+  };
+
+  const handleDownloadExcel = async () => {
+    // Loaded on demand so the spreadsheet library isn't in the initial bundle
+    const XLSX = await import('xlsx');
+    const rows = leads.map((lead, index) => ({
+      '#': index + 1,
+      'Business Name': lead.name,
+      'Phone Number': lead.phone,
+      'Website': lead.website,
+      'Email': lead.email,
+      'Keyword': lead.keyword || '',
+      'Country': lead.country || '',
+      'City': lead.city || '',
+      'Specific Area': lead.specificArea || '',
+    }));
+    const sheet = XLSX.utils.json_to_sheet(rows);
+    sheet['!cols'] = [{ wch: 5 }, { wch: 35 }, { wch: 18 }, { wch: 40 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 20 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Leads');
+    XLSX.writeFile(workbook, `leads-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -124,6 +139,22 @@ export default function LeadPage() {
           {isScraping ? 'Extraction Engine Running...' : 'Extract Realtime Leads'}
         </button>
       </form>
+
+      <div className="container mx-auto flex justify-between items-center mb-3">
+        <span className="text-sm text-gray-600">{leads.length} lead{leads.length === 1 ? '' : 's'}</span>
+        <button
+          type="button"
+          onClick={handleDownloadExcel}
+          disabled={leads.length === 0}
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all duration-150 ${
+            leads.length === 0
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
+          }`}
+        >
+          Download Excel Sheet
+        </button>
+      </div>
 
       {/* Data Visualizer Grid Table */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden container mx-auto">

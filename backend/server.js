@@ -5,8 +5,6 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { startMapsScraping } from './scraper.js';
-import './db.js';
-import { Lead } from './models/Lead.js';
 
 dotenv.config();
 
@@ -33,47 +31,19 @@ app.post('/api/scrape', (req, res) => {
   }
 
   // Spin the long-running automation script inside the background asynchronously 
-  startMapsScraping(keyword, location, io);
+  // A failed run (e.g. browser launch error) must not take the whole server down
+  startMapsScraping(keyword, location, io).catch((err) => {
+    console.error('[Scraper] Run failed:', err.message);
+    io.emit('scraping-finished');
+  });
 
   // Instantly return execution acknowledgment back to client
   res.status(200).json({ status: "Scraping started background process." });
-});
-
-// Returns saved leads (most recent first). Optional `limit` query param.
-app.get('/api/leads', async (req, res) => {
-  try {
-    const limit = Math.min(parseInt(req.query.limit || '100', 10), 1000);
-    const leads = await Lead.find().sort({ createdAt: -1 }).limit(limit).lean();
-    res.json(leads);
-  } catch (err) {
-    console.error('Error fetching leads:', err.message);
-    res.status(500).json({ error: 'Failed to fetch leads' });
-  }
 });
 
 io.on('connection', (socket) => {
   console.log(`Client streaming channel synchronized: ${socket.id}`);
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
-});
-
 const PORT = process.env.PORT || 5000;
-const server = httpServer.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(async () => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-  
-  // Force shutdown after 30 seconds
-  setTimeout(() => {
-    console.error('Forced shutdown due to timeout');
-    process.exit(1);
-  }, 30000);
-});
+httpServer.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
